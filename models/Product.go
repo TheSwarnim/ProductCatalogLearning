@@ -1,8 +1,10 @@
 package models
 
 type Product struct {
-	id          int
-	name        string
-	description string
-	quantity    int
+	Id          int
+	Name        string
+	Description string
+	Quantity    int
 }
+
+type Products []*Product

@@ -7,5 +7,5 @@ type ProductService interface {
 	AddProduct(product models.Product) error
 	RemoveProduct(id int) error
 	EditProduct(product models.Product) error
-	GetAllProducts() ([]models.Product, error)
+	GetAllProducts() (models.Products, error)
 }

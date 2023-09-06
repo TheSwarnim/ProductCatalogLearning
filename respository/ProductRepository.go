@@ -7,5 +7,9 @@ type ProductRepository interface {
 	Save(product models.Product) error
 	Update(product models.Product) error
 	Delete(id int) error
-	FindAll() ([]models.Product, error)
+	FindAll() (models.Products, error)
+}
+
+type ProductInventoryRepository struct {
+	productList models.Products
 }
