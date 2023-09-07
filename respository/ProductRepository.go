@@ -13,7 +13,7 @@ var (
 type ProductRepository interface {
 	FindById(id int) (*models.Product, error)
 	Save(product *models.Product) error
-	Update(product *models.Product) error
+	Update(id int, product *models.Product) error
 	Delete(id int) error
 	FindAll() models.Products
 }
@@ -46,8 +46,8 @@ func (p *ProductRepositoryImpl) Save(product *models.Product) error {
 	return nil
 }
 
-func (p *ProductRepositoryImpl) Update(product *models.Product) error {
-	index, _, err := p.findProductAndIndexById(product.Id)
+func (p *ProductRepositoryImpl) Update(id int, product *models.Product) error {
+	index, _, err := p.findProductAndIndexById(id)
 	if err != nil {
 		return err
 	}

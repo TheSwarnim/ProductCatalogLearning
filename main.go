@@ -22,7 +22,7 @@ func main() {
 
 	serveMux := http.NewServeMux()
 
-	serveMux.Handle("/products", productHandler)
+	serveMux.Handle("/products/", productHandler)
 
 	server := &http.Server{
 		Addr:         ":8080",

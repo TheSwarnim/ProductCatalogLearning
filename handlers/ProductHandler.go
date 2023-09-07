@@ -40,18 +40,19 @@ type ProductHandlerImpl struct {
 func (p *ProductHandlerImpl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		id, err := p.getPlaceholder(r)
+		id, err := p.getPlaceholder(r, p.l)
 
+		p.l.Println(id, err)
 		if err != nil {
 			if errors.Is(err, ErrNoPlaceholderFound) {
-				p.getProductById(id, w)
+				p.getAllProducts(w)
 			} else {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 			return
 		}
 
-		p.getAllProducts(w)
+		p.getProductById(id, w)
 	case http.MethodPost:
 		p.addProduct(w, r)
 	case http.MethodPut:
@@ -63,13 +64,8 @@ func (p *ProductHandlerImpl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//AddProduct(product *models.Product) error
-//	RemoveProduct(id int) error
-//	EditProduct(product *models.Product) error
-//	GetAllProducts() (models.Products, error)
-
 func (p *ProductHandlerImpl) removeProduct(w http.ResponseWriter, r *http.Request) {
-	id, err := p.getPlaceholder(r)
+	id, err := p.getPlaceholder(r, p.l)
 	if err != nil {
 		http.Error(w, ErrUnableToDeleteProduct.Error(), http.StatusInternalServerError)
 		return
@@ -82,15 +78,22 @@ func (p *ProductHandlerImpl) removeProduct(w http.ResponseWriter, r *http.Reques
 }
 
 func (p *ProductHandlerImpl) editProduct(w http.ResponseWriter, r *http.Request) {
-	product := &models.Product{}
-	err := product.FromJSON(r.Body)
+	id, err := p.getPlaceholder(r, p.l)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
+	product := &models.Product{}
+	err = product.FromJSON(r.Body)
+
+	p.l.Println("product received for update: ", product)
 	if err != nil {
 		http.Error(w, ErrUnableToUpdateProduct.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	err = p.productService.EditProduct(product)
+	err = p.productService.EditProduct(id, product)
 
 	if errors.Is(err, respository.ErrProductNotFound) {
 		http.Error(w, respository.ErrProductNotFound.Error(), http.StatusBadRequest)
@@ -131,6 +134,7 @@ func (p *ProductHandlerImpl) getProductById(id int, w http.ResponseWriter) {
 	product, err := p.productService.GetProductById(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
+		return
 	}
 
 	err = product.ToJSON(w)
@@ -140,9 +144,10 @@ func (p *ProductHandlerImpl) getProductById(id int, w http.ResponseWriter) {
 	}
 }
 
-func (p *ProductHandlerImpl) getPlaceholder(r *http.Request) (int, error) {
+func (p *ProductHandlerImpl) getPlaceholder(r *http.Request, l *log.Logger) (int, error) {
 	reg := regexp.MustCompile(`/([0-9]+)`)
 	g := reg.FindAllStringSubmatch(r.URL.Path, -1)
+	l.Println(g)
 
 	if len(g) != 1 || len(g[0]) != 2 {
 		return -1, ErrNoPlaceholderFound
