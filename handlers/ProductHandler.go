@@ -25,6 +25,13 @@ type ProductHandler interface {
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
 }
 
+func NewProductHandler(productService services.ProductService, l *log.Logger) ProductHandler {
+	return &ProductHandlerImpl{
+		productService: productService,
+		l:              l,
+	}
+}
+
 type ProductHandlerImpl struct {
 	productService services.ProductService
 	l              *log.Logger
@@ -48,9 +55,11 @@ func (p *ProductHandlerImpl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case http.MethodPost:
 		p.addProduct(w, r)
 	case http.MethodPut:
-		p.EditProduct(w, r)
+		p.editProduct(w, r)
 	case http.MethodDelete:
-
+		p.removeProduct(w, r)
+	default:
+		w.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
@@ -59,7 +68,7 @@ func (p *ProductHandlerImpl) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 //	EditProduct(product *models.Product) error
 //	GetAllProducts() (models.Products, error)
 
-func (p *ProductHandlerImpl) RemoveProduct(w http.ResponseWriter, r *http.Request) {
+func (p *ProductHandlerImpl) removeProduct(w http.ResponseWriter, r *http.Request) {
 	id, err := p.getPlaceholder(r)
 	if err != nil {
 		http.Error(w, ErrUnableToDeleteProduct.Error(), http.StatusInternalServerError)
@@ -72,7 +81,7 @@ func (p *ProductHandlerImpl) RemoveProduct(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (p *ProductHandlerImpl) EditProduct(w http.ResponseWriter, r *http.Request) {
+func (p *ProductHandlerImpl) editProduct(w http.ResponseWriter, r *http.Request) {
 	product := &models.Product{}
 	err := product.FromJSON(r.Body)
 
