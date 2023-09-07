@@ -17,11 +17,16 @@ type ProductRepository interface {
 	Delete(id int) error
 	FindAll() (models.Products, error)
 }
-type ProductInventoryRepository struct {
+
+func NewProductRepository(productList models.Products) ProductRepository {
+	return &ProductRepositoryImpl{productList}
+}
+
+type ProductRepositoryImpl struct {
 	productList models.Products
 }
 
-func (p *ProductInventoryRepository) FindById(id int) (*models.Product, error) {
+func (p *ProductRepositoryImpl) FindById(id int) (*models.Product, error) {
 	for _, product := range p.productList {
 		if product.Id == id {
 			return product, nil
@@ -30,7 +35,7 @@ func (p *ProductInventoryRepository) FindById(id int) (*models.Product, error) {
 	return nil, ErrProductNotFound
 }
 
-func (p *ProductInventoryRepository) Save(product *models.Product) error {
+func (p *ProductRepositoryImpl) Save(product *models.Product) error {
 	existingProduct, _ := p.FindById(product.Id)
 	if existingProduct != nil {
 		return ErrProductAlreadyExists
@@ -41,7 +46,7 @@ func (p *ProductInventoryRepository) Save(product *models.Product) error {
 	return nil
 }
 
-func (p *ProductInventoryRepository) Update(product *models.Product) error {
+func (p *ProductRepositoryImpl) Update(product *models.Product) error {
 	index, existingProduct, err := p.findProductAndIndexById(product.Id)
 	if err != nil {
 		return err
@@ -52,7 +57,7 @@ func (p *ProductInventoryRepository) Update(product *models.Product) error {
 	return nil
 }
 
-func (p *ProductInventoryRepository) Delete(id int) error {
+func (p *ProductRepositoryImpl) Delete(id int) error {
 	index, _, err := p.findProductAndIndexById(id)
 	if err != nil {
 		return err
@@ -62,15 +67,15 @@ func (p *ProductInventoryRepository) Delete(id int) error {
 	return nil
 }
 
-func (p *ProductInventoryRepository) FindAll() (models.Products, error) {
+func (p *ProductRepositoryImpl) FindAll() (models.Products, error) {
 	return p.productList, nil
 }
 
-func (p *ProductInventoryRepository) getNextProductId() int {
+func (p *ProductRepositoryImpl) getNextProductId() int {
 	return len(p.productList) + 1
 }
 
-func (p *ProductInventoryRepository) findProductAndIndexById(id int) (int, *models.Product, error) {
+func (p *ProductRepositoryImpl) findProductAndIndexById(id int) (int, *models.Product, error) {
 	for i, product := range p.productList {
 		if product.Id == id {
 			return i, product, nil
