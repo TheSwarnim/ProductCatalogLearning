@@ -10,7 +10,7 @@ type ProductService interface {
 	AddProduct(product *models.Product) error
 	RemoveProduct(id int) error
 	EditProduct(product *models.Product) error
-	GetAllProducts() (models.Products, error)
+	GetAllProducts() models.Products
 }
 
 func NewProductService(productRepository respository.ProductRepository) ProductService {
@@ -34,9 +34,9 @@ func (p *ProductServiceImpl) RemoveProduct(id int) error {
 }
 
 func (p *ProductServiceImpl) EditProduct(product *models.Product) error {
-	return p.EditProduct(product)
+	return p.productRepository.Update(product)
 }
 
-func (p *ProductServiceImpl) GetAllProducts() (models.Products, error) {
-	return p.GetAllProducts()
+func (p *ProductServiceImpl) GetAllProducts() models.Products {
+	return p.productRepository.FindAll()
 }

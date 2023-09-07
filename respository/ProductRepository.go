@@ -15,7 +15,7 @@ type ProductRepository interface {
 	Save(product *models.Product) error
 	Update(product *models.Product) error
 	Delete(id int) error
-	FindAll() (models.Products, error)
+	FindAll() models.Products
 }
 
 func NewProductRepository(productList models.Products) ProductRepository {
@@ -47,12 +47,11 @@ func (p *ProductRepositoryImpl) Save(product *models.Product) error {
 }
 
 func (p *ProductRepositoryImpl) Update(product *models.Product) error {
-	index, existingProduct, err := p.findProductAndIndexById(product.Id)
+	index, _, err := p.findProductAndIndexById(product.Id)
 	if err != nil {
 		return err
 	}
 
-	product.Id = existingProduct.Id
 	p.productList[index] = product
 	return nil
 }
@@ -67,8 +66,8 @@ func (p *ProductRepositoryImpl) Delete(id int) error {
 	return nil
 }
 
-func (p *ProductRepositoryImpl) FindAll() (models.Products, error) {
-	return p.productList, nil
+func (p *ProductRepositoryImpl) FindAll() models.Products {
+	return p.productList
 }
 
 func (p *ProductRepositoryImpl) getNextProductId() int {
